@@ -1,0 +1,117 @@
+import pygame, random
+from pygame.locals import *
+
+def on_grid_random():
+    x = random.randint(10, 580)
+    y = random.randint(10, 580)
+    return (x//10 * 10, y//10 *10)
+def collision(c1, c2):
+    return (c1[0] == c2[0]) and c1[1] == c2[1]
+pygame.font.init()
+font = pygame.font.SysFont('comicsans', 30)
+
+score = 0
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
+time = 15
+
+pygame.init()
+scrren = pygame.display.set_mode((600,600))
+snake = [(200,200), (210, 200), (220, 200)]
+snake_skin = pygame.Surface((10,10))
+snake_skin.fill((255,255,255))
+
+apple_pos = on_grid_random()
+apple = pygame.Surface((10,10))
+apple.fill((255,0,0))
+
+BLOCKS=[]
+for c in range(20):
+    a=random.randint(1,59)
+    b=random.randint(1,59)
+    d=random.randint(1,59)
+    BLOCKS.append((a*10,b*10))
+    BLOCKS.append((a*10,d*10))
+    BLOCKS.append((d*10,b*10))
+    BLOCKS.append((d*10,0))
+    BLOCKS.append((0,a*10))
+    BLOCKS.append((b*10,590))
+    BLOCKS.append((590,d*10))
+
+BLOCK = pygame.Surface((10,10))
+BLOCK.fill((150,100,255))
+
+my_direction = LEFT
+
+clock = pygame.time.Clock()
+run = True
+while run:
+    clock.tick(time)
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            run = False
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_UP] and my_direction!= DOWN:
+            my_direction = UP
+        if keys[pygame.K_DOWN] and my_direction != UP:
+            my_direction = DOWN
+        if keys[pygame.K_LEFT] and my_direction != RIGHT:
+            my_direction = LEFT
+        if keys[pygame.K_RIGHT] and my_direction != LEFT:
+            my_direction = RIGHT
+        if keys[pygame.K_ESCAPE]:
+            run = False
+    if collision(snake[0], apple_pos):
+        apple_pos = on_grid_random()
+        snake.append((0,0))
+        score +=1
+    for c in range(len(BLOCKS)):
+        if collision(apple_pos, BLOCKS[c]):
+            apple_pos = on_grid_random()
+            
+    for c in range(len(BLOCKS)):
+        if collision(snake[0], BLOCKS[c]):
+            run = False
+   
+    if my_direction == UP:
+        snake[0] = (snake[0][0], snake[0][1] - 10)
+    if my_direction == DOWN:
+        snake[0] = (snake[0][0], snake[0][1] + 10)
+    if my_direction == RIGHT:
+        snake[0] = (snake[0][0] + 10, snake[0][1])
+    if my_direction == LEFT:
+        snake[0] = (snake[0][0] - 10, snake[0][1])
+    for i in range(len(snake) - 1, 0, -1):
+        snake[i] = (snake[i-1][0], snake[i-1][1])
+    HEAD=snake[0]
+    BODY=snake[2:]
+    for c in range(len(BODY)):
+        if collision(HEAD,BODY[c]):
+            run = False
+    for c in range(600):
+        if snake[0] == (0,c) and my_direction==LEFT:
+            snake[0]=(600,snake[0][1])
+        if snake[0] == (600,c) and my_direction==RIGHT:
+            snake[0]=(0,snake[0][1])
+        if snake[0] == (c,0) and my_direction==UP:
+            snake[0]=(snake[0][0],600)
+        if snake[0] == (c,600) and my_direction==DOWN:
+            snake[0]=(snake[0][0],0)
+
+        
+    scrren.fill((0,0,0))
+    scrren.blit(apple, apple_pos)
+  
+    for c in BLOCKS:
+        scrren.blit(BLOCK, c)
+    for pos in snake:
+        scrren.blit(snake_skin,pos)
+    text = font.render('Score:' + str(score), 1, (0,200,0))
+    scrren.blit(text, (490,10))
+    pygame.display.update()
+if run == False:
+    print(score)
+    pygame.quit()
